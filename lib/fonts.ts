@@ -1,20 +1,16 @@
-import localFont from "next/font/local";
+import { Source_Sans_3 } from "next/font/google";
 
-export const sourceSans = localFont({
-  src: [
-    { path: "../app/assets/Fonts/SourceSansPro-ExtraLight.ttf", weight: "200", style: "normal" },
-    { path: "../app/assets/Fonts/SourceSansPro-ExtraLightItalic.ttf", weight: "200", style: "italic" },
-    { path: "../app/assets/Fonts/SourceSansPro-Light.ttf", weight: "300", style: "normal" },
-    { path: "../app/assets/Fonts/SourceSansPro-LightItalic.ttf", weight: "300", style: "italic" },
-    { path: "../app/assets/Fonts/SourceSansPro-Regular.ttf", weight: "400", style: "normal" },
-    { path: "../app/assets/Fonts/SourceSansPro-Italic.ttf", weight: "400", style: "italic" },
-    { path: "../app/assets/Fonts/SourceSansPro-SemiBold.ttf", weight: "600", style: "normal" },
-    { path: "../app/assets/Fonts/SourceSansPro-SemiBoldItalic.ttf", weight: "600", style: "italic" },
-    { path: "../app/assets/Fonts/SourceSansPro-Bold.ttf", weight: "700", style: "normal" },
-    { path: "../app/assets/Fonts/SourceSansPro-BoldItalic.ttf", weight: "700", style: "italic" },
-    { path: "../app/assets/Fonts/SourceSansPro-Black.ttf", weight: "900", style: "normal" },
-    { path: "../app/assets/Fonts/SourceSansPro-BlackItalic.ttf", weight: "900", style: "italic" },
-  ],
-  variable: "--font-source-sans",
+/**
+ * Source Sans Pro is published on Google Fonts as "Source Sans 3" (the same
+ * typeface, actively maintained). We load it via next/font/google rather than
+ * next/font/local so the font is fetched at build time — no local .ttf binaries
+ * to ship, vendor, or accidentally truncate, and it builds cleanly on Vercel.
+ *
+ * It's a variable font, so the full 200–900 weight axis is included; the same
+ * `--font-source-sans` CSS variable is exposed, so nothing else changes.
+ */
+export const sourceSans = Source_Sans_3({
+  subsets: ["latin"],
   display: "swap",
+  variable: "--font-source-sans",
 });
