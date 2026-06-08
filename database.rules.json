@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "launch": {
+      ".read": true,
+      ".write": true,
+      "taps": { ".validate": "newData.isNumber()" },
+      "phase": { ".validate": "newData.isString()" },
+      "revealAt": { ".validate": "newData.isNumber() || newData.val() === null" }
+    },
+    "presence": {
+      ".read": true,
+      "$cid": { ".write": true }
+    }
+  }
+}

@@ -2,8 +2,24 @@ import type { LaunchState, Phase } from "@/types/state";
 
 /** Progress is capped here until the MC fires the reveal. */
 export const HOLD_AT = 99;
-/** Aggregate taps required to advance the collective meter by 1%. */
-export const TAPS_PER_PERCENT = 4;
+
+/**
+ * Aggregate taps required to advance the collective meter by 1%.
+ *
+ * Tunable WITHOUT a code change via the NEXT_PUBLIC_TAPS_PER_PERCENT env var
+ * (computeState now runs client-side, so it must be a NEXT_PUBLIC_ var to be
+ * inlined into the bundle). Keep it tiny while testing with a few people and
+ * scale it up for the real crowd:
+ *
+ *   taps-to-99%  = TAPS_PER_PERCENT * 99
+ *   target       ≈ (people) * (taps/sec each ~4) * (desired seconds to fill)
+ *
+ * e.g. 600 people, ~45s of effort → ~108,000 taps → TAPS_PER_PERCENT ≈ 1100.
+ * Default below (0.5 → ~50 taps to fill) is for low-headcount testing.
+ */
+export const TAPS_PER_PERCENT =
+  Number(process.env.NEXT_PUBLIC_TAPS_PER_PERCENT) || 0.5;
+
 /** How long the 99 → 100 "break through" animates after reveal. */
 export const REVEAL_DURATION_MS = 1400;
 

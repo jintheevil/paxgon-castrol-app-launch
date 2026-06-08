@@ -1,6 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  ref,
+  onValue,
+  set,
+  update,
+  remove,
+  increment,
+  onDisconnect,
+  serverTimestamp,
+} from "firebase/database";
+import { db } from "@/lib/firebase";
+import { computeState, type RawState } from "@/lib/launchLogic";
 import type { LaunchState } from "@/types/state";
 
 const INITIAL: LaunchState = {
@@ -10,14 +22,18 @@ const INITIAL: LaunchState = {
   guests: 0,
 };
 
-/** How often each client pulls authoritative state. */
-const POLL_MS = 300;
-/** How often batched taps are flushed to the server. */
-const FLUSH_MS = 250;
+/** Default state when /launch hasn't been written yet. */
+const DEFAULT_RAW: RawState = { phase: "standby", taps: 0, revealAt: null };
+
+/** How often batched taps are flushed to RTDB as one atomic increment. */
+const FLUSH_MS = 300;
+/** Local recompute cadence — drives the smooth 99→100 reveal and the
+ *  holding derivation between RTDB pushes (RTDB only fires on data change). */
+const TICK_MS = 80;
 
 /**
- * Stable per-tab client id, used for presence (guest count). Kept in
- * sessionStorage so a refresh doesn't inflate the count with a new id.
+ * Stable per-tab id for presence (guest count). sessionStorage so a refresh
+ * reuses it instead of inflating the count.
  */
 function getClientId(): string {
   if (typeof window === "undefined") return "server";
@@ -33,71 +49,91 @@ function getClientId(): string {
   }
 }
 
+function sameState(a: LaunchState, b: LaunchState): boolean {
+  return (
+    a.phase === b.phase &&
+    a.progress === b.progress &&
+    a.totalTaps === b.totalTaps &&
+    a.guests === b.guests
+  );
+}
+
 /**
- * Drop-in replacement for the old Socket.IO hook. Same name, same return
- * shape — so the page components don't change — but backed by HTTP polling
- * + batched POSTs, which deploy natively to Vercel (no persistent sockets).
+ * Same public API as the old Socket.IO hook (name + return shape) so the page
+ * components are unchanged — now backed by Firebase Realtime Database, which
+ * is itself a managed WebSocket service: one broadcast fans out to every
+ * client, no polling, scales comfortably to hundreds of concurrent phones.
  */
 export function useLaunchSocket() {
   const [state, setState] = useState<LaunchState>(INITIAL);
   const [connected, setConnected] = useState(false);
 
+  const rawRef = useRef<RawState>(DEFAULT_RAW);
+  const guestsRef = useRef(0);
   const pendingTaps = useRef(0);
-  const cidRef = useRef("");
+  const lastRef = useRef<LaunchState>(INITIAL);
 
   useEffect(() => {
-    cidRef.current = getClientId();
-    let alive = true;
+    const cid = getClientId();
 
-    const poll = async () => {
-      try {
-        const res = await fetch(`/api/state?cid=${cidRef.current}`, {
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error(String(res.status));
-        const s: LaunchState = await res.json();
-        if (alive) {
-          setState(s);
-          setConnected(true);
-        }
-      } catch {
-        if (alive) setConnected(false);
+    // 1. Authoritative launch state — pushed on every change.
+    const launchRef = ref(db, "launch");
+    const offLaunch = onValue(launchRef, (snap) => {
+      const v = snap.val() as Partial<RawState> | null;
+      rawRef.current = {
+        phase: v?.phase ?? "standby",
+        taps: typeof v?.taps === "number" ? v.taps : 0,
+        revealAt: typeof v?.revealAt === "number" ? v.revealAt : null,
+      };
+    });
+
+    // 2. Presence — register self on connect, auto-remove on disconnect.
+    const meRef = ref(db, `presence/${cid}`);
+    const connRef = ref(db, ".info/connected");
+    const offConn = onValue(connRef, (snap) => {
+      const isConnected = snap.val() === true;
+      setConnected(isConnected);
+      if (isConnected) {
+        onDisconnect(meRef).remove();
+        set(meRef, true).catch(() => {});
       }
-    };
+    });
+    const presenceRef = ref(db, "presence");
+    const offPresence = onValue(presenceRef, (snap) => {
+      guestsRef.current = snap.size;
+    });
 
-    const flush = async () => {
+    // 3. Local ticker: recompute the displayed state from the latest raw
+    //    snapshot + current time (smooth reveal animation + holding state).
+    const tick = setInterval(() => {
+      const next = computeState(rawRef.current, guestsRef.current);
+      if (!sameState(next, lastRef.current)) {
+        lastRef.current = next;
+        setState(next);
+      }
+    }, TICK_MS);
+
+    // 4. Flush batched taps as a single atomic server-side increment.
+    const flush = setInterval(() => {
       const n = pendingTaps.current;
       if (n <= 0) return;
       pendingTaps.current = 0;
-      try {
-        await fetch("/api/tap", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ count: n }),
-        });
-      } catch {
-        // Re-queue on failure so taps aren't lost.
-        pendingTaps.current += n;
-      }
-    };
-
-    poll();
-    const pollId = setInterval(poll, POLL_MS);
-    const flushId = setInterval(flush, FLUSH_MS);
+      update(launchRef, { taps: increment(n) }).catch(() => {
+        pendingTaps.current += n; // re-queue on failure
+      });
+    }, FLUSH_MS);
 
     return () => {
-      alive = false;
-      clearInterval(pollId);
-      clearInterval(flushId);
+      offLaunch();
+      offConn();
+      offPresence();
+      clearInterval(tick);
+      clearInterval(flush);
+      remove(meRef).catch(() => {});
     };
   }, []);
 
-  const mc = (action: "start" | "reveal" | "reset") =>
-    fetch("/api/mc", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action }),
-    }).catch(() => {});
+  const launchRef = () => ref(db, "launch");
 
   return {
     state,
@@ -106,8 +142,18 @@ export function useLaunchSocket() {
     tap: () => {
       pendingTaps.current += 1;
     },
-    mcStart: () => mc("start"),
-    mcReveal: () => mc("reveal"),
-    mcReset: () => mc("reset"),
+    mcStart: () =>
+      set(launchRef(), { phase: "tapping", taps: 0, revealAt: null }).catch(
+        () => {}
+      ),
+    mcReveal: () =>
+      update(launchRef(), {
+        phase: "revealed",
+        revealAt: serverTimestamp(),
+      }).catch(() => {}),
+    mcReset: () =>
+      set(launchRef(), { phase: "standby", taps: 0, revealAt: null }).catch(
+        () => {}
+      ),
   };
 }
