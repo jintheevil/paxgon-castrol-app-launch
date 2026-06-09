@@ -115,7 +115,7 @@ export default function MobilePage() {
       {isRevealed ? <Sparkles /> : <GoldBackdrop />}
 
       <header className="z-10 flex w-full flex-col items-center gap-2">
-        <CastrolLogo className="h-12" />
+        <CastrolLogo className="h-20 h-sm:h-16 h-sm:mb-4" />
       </header>
 
       <AnimatePresence mode="wait">
@@ -127,12 +127,12 @@ export default function MobilePage() {
             exit={{ opacity: 0 }}
             className="z-10 flex flex-1 flex-col items-center justify-center gap-12 pb-16 text-center"
           >
-            <h1 className="text-5xl font-light tracking-wide text-white">
+            <h1 className="text-6xl font-bold tracking-[1.5rem] indent-[1.5rem] text-white text-center">
               WSMS
-              <span className="mt-2 block text-3xl font-light text-gold-200">Launch</span>
+              <span className="mt-6 block text-3xl font-bold text-gold-200">Launch</span>
             </h1>
             <LoadingSpinner className="h-20 w-20" />
-            <p className="max-w-xs text-lg leading-relaxed text-gold-100/80">
+            <p className="max-w-xs text-4xl font-semibold leading-relaxed text-gold-100/80">
               The launch will begin shortly.
               <br />
               Please standby…
@@ -148,7 +148,7 @@ export default function MobilePage() {
             exit={{ opacity: 0 }}
             className="z-10 mt-6 flex flex-1 flex-col items-center gap-4 text-center"
           >
-            <p className="text-sm uppercase tracking-[0.4em] text-gold-300">WSMS Launch</p>
+            <p className="mt-2 mb-4 text-xl uppercase tracking-[0.4em] text-gold-300">WSMS Launch</p>
 
             {/* Fixed-height headline container so swapping copy doesn't push
              *  the bottle / oil pour down. */}
@@ -162,7 +162,7 @@ export default function MobilePage() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  className="max-w-xs text-3xl font-extrabold uppercase leading-tight tracking-wide text-white"
+                  className="max-w-xs text-4xl h-sm:text-2xl font-extrabold uppercase leading-tight tracking-[0.2rem] text-white"
                 >
                   {hasPoured
                     ? "Keep tapping the bottle to pour the oil"
@@ -283,7 +283,7 @@ export default function MobilePage() {
                   {state.progress.toFixed(0)}%
                 </span>
               </div>
-              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-black/70 ring-1 ring-gold-700/40">
+              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-black/70 ring-1 ring-gold-700/40 mb-20 h-sm:mb-10">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-gold-400 via-amber-400 to-gold-200"
                   animate={{ width: `${state.progress}%` }}
@@ -300,7 +300,7 @@ export default function MobilePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="z-10 flex flex-1 flex-col items-center justify-center gap-8 text-center"
+            className="z-10 flex flex-1 flex-col items-center justify-center gap-8 h-sm:gap-4 text-center"
           >
             <motion.div
               initial={{ scale: 0.2, opacity: 0 }}
@@ -308,7 +308,7 @@ export default function MobilePage() {
               transition={{ type: "spring", damping: 12, stiffness: 100 }}
               className="relative z-10"
             >
-              <F6Logo className="h-56 w-56" />
+              <F6Logo className="h-56 w-56 h-sm:h-40 h-sm:w-40" />
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -316,15 +316,15 @@ export default function MobilePage() {
               transition={{ delay: 0.6, duration: 0.6 }}
               className="z-10 flex flex-col gap-2"
             >
-              <p className="text-2xl font-semibold text-white drop-shadow">Introducing WSMS</p>
-              <p className="text-sm text-white/90">(Workshop Management System)</p>
-              <p className="text-sm text-white/90">developed by F6</p>
+              <p className="text-4xl h-sm:text-2xl font-semibold text-white drop-shadow">Introducing WSMS</p>
+              <p className="text-2xl h-sm:text-xl text-white/90">(Workshop Management System)</p>
+              <p className="text-2xl h-sm:text-xl text-white/90">developed by F6</p>
             </motion.div>
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2, duration: 0.6 }}
-              className="z-10 mt-6 max-w-xs text-base font-semibold text-white drop-shadow"
+              className="z-10 mt-6 h-sm:mt-2 max-w-xs text-4xl h-sm:text-2xl font-semibold text-white drop-shadow"
             >
               Thank You For Your Participation
             </motion.p>

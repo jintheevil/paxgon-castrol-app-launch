@@ -7,6 +7,11 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        'h-sm': { raw: '(max-height: 667px)' },
+        'h-md': { raw: '(min-height: 932px)' },
+        'h-lg': { raw: '(min-height: 1000px)' },
+      },
       colors: {
         castrol: {
           green: "#00984A",
