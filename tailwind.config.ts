@@ -37,8 +37,8 @@ const config: Config = {
         "burst": "burst 0.6s ease-out forwards",
         "reveal-scale": "reveal-scale 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards",
         "sparkle": "sparkle 2s ease-in-out infinite",
-        "oil-drop": "oil-drop 950ms cubic-bezier(0.4, 0, 0.6, 1) forwards",
-        "oil-splash": "oil-splash 400ms ease-out forwards",
+        "oil-flow": "oil-flow 0.4s linear infinite",
+        "oil-splash-pulse": "oil-splash-pulse 0.5s ease-in-out infinite",
       },
       keyframes: {
         "bottle-tilt": {
@@ -63,19 +63,16 @@ const config: Config = {
           "0%, 100%": { opacity: "0.3" },
           "50%": { opacity: "1" },
         },
-        // A single blob of oil falling from the spout to past the bottom of
-        // the bottle area. Stretches vertically as it falls (gravity look)
-        // and squashes/fades at the bottom.
-        "oil-drop": {
-          "0%":   { transform: "translate(-50%, 0) scaleX(0.55) scaleY(1.3)", opacity: "0" },
-          "10%":  { transform: "translate(-50%, 24px) scaleX(0.55) scaleY(1.4)", opacity: "1" },
-          "70%":  { transform: "translate(-50%, 280px) scaleX(0.85) scaleY(1.1)", opacity: "1" },
-          "100%": { transform: "translate(-50%, 420px) scaleX(1.4) scaleY(0.55)", opacity: "0" },
+        // Continuous downward flow — scrolls the repeating gradient by one
+        // tile (36px) so the oil stream looks like it's pouring.
+        "oil-flow": {
+          "0%": { backgroundPositionY: "0px" },
+          "100%": { backgroundPositionY: "36px" },
         },
-        // A small ring/halo at the spout the moment a tap lands.
-        "oil-splash": {
-          "0%":   { transform: "translate(-50%, -50%) scale(0.4)", opacity: "0.9" },
-          "100%": { transform: "translate(-50%, -50%) scale(2.4)", opacity: "0" },
+        // The pool where the stream lands, gently pulsing while pouring.
+        "oil-splash-pulse": {
+          "0%, 100%": { transform: "translateX(-50%) scale(0.85)", opacity: "0.5" },
+          "50%": { transform: "translateX(-50%) scale(1.15)", opacity: "0.85" },
         },
       },
     },

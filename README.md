@@ -101,7 +101,7 @@ Tap-flush and local recompute cadence live in [lib/socket.ts](lib/socket.ts) (`F
 - [lib/socket.ts](lib/socket.ts) — `useLaunchSocket` hook (RTDB subscribe, presence, batched tap increments)
 - [lib/launchLogic.ts](lib/launchLogic.ts) — constants + `computeState` (pure progress/phase projection)
 - [database.rules.json](database.rules.json) — RTDB security rules for `/launch` + `/presence`
-- [lib/fonts.ts](lib/fonts.ts) — Source Sans (Source Sans 3) via `next/font/google`
+- [lib/fonts.ts](lib/fonts.ts) — Source Sans Pro via `next/font/local` (files in `public/assets/Fonts`)
 - [app/stage/page.tsx](app/stage/page.tsx) — LED screen view
 - [app/page.tsx](app/page.tsx) — guest mobile microsite
 - [app/mc/page.tsx](app/mc/page.tsx) — MC control panel
@@ -120,4 +120,4 @@ Tap-flush and local recompute cadence live in [lib/socket.ts](lib/socket.ts) (`F
 | [TapIcon](components/TapIcon.tsx) (mobile CTA)             | `public/assets/Tap-Icon.png`                |
 | Fonts                                                      | `app/assets/Fonts/SourceSansPro-*.ttf`      |
 
-Static images live in `public/assets/` because that is what Next.js serves at `/assets/…`. The `app/` directory is the App Router root and only routes are served from there. Fonts can stay under `app/assets/Fonts/` because `next/font/local` reads them at build time via the relative path in [lib/fonts.ts](lib/fonts.ts).
+Static images and the Source Sans Pro font files live in `public/assets/` because that is what Next.js serves at `/assets/…`. The `app/` directory is the App Router root and only routes are served from there. `next/font/local` reads the `.ttf` files at build time via the relative path in [lib/fonts.ts](lib/fonts.ts).

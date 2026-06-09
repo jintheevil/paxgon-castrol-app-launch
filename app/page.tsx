@@ -6,39 +6,54 @@ import { useLaunchSocket } from "@/lib/socket";
 import { CastrolLogo } from "@/components/CastrolLogo";
 import { F6Logo } from "@/components/F6Logo";
 import { OilBottle } from "@/components/OilBottle";
+import { OilPour } from "@/components/OilPour";
 import { GoldBackdrop } from "@/components/GoldBackdrop";
 import { Sparkles } from "@/components/Sparkles";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { TapIcon } from "@/components/TapIcon";
 
 type Burst = { id: number; x: number; y: number };
-type Drop = { id: number; jitter: number };
 
 /** Position of the bottle's cap/spout art inside its PNG, as percentages of
  *  width/height. Measured directly from CAST-EDGE-opened.png:
  *    – the neck opening's left/right extent is x = 280–500 (centre ≈ 25%)
  *    – the top of the neck rim is at y ≈ 77/1944 ≈ 4%
  *  This is the anchor for *everything*: the bottle is pinned to the screen by
- *  this point so that the spout stays put regardless of tilt, and oil drops
- *  emerge from exactly the same screen pixel. */
+ *  this point so that the spout stays put regardless of tilt, and the oil
+ *  stream pours from exactly the same screen pixel. */
 const CAP_X_PCT = 25;
 const CAP_Y_PCT = 4;
 
-/** Pouring is a TWO-position dance, not a single static tilt:
- *  - POUR_BASE is the "ready" position the bottle settles into between taps.
- *  - POUR_STROKE is the extra tilt that fires for ~130 ms on every tap, then
- *    untilts back to POUR_BASE. Each tap = one tipping motion = one drop.
+/** Bottle tilt is tied to the pour:
+ *  - upright (0°) before the first tap,
+ *  - POUR_BASE while the session is active but the guest has paused,
+ *  - POUR_DEEP while actively pouring (recent taps) — tips further so the
+ *    oil visibly streams out.
  *  Negative degrees rotate CCW (spout dips down-left). */
-const POUR_BASE_DEG = -42;
-const POUR_STROKE_DEG = -16;
+const POUR_BASE_DEG = -40;
+const POUR_DEEP_DEG = -58;
 
-/** Where, vertically, we want the cap to live inside the tap area. */
-const CAP_TOP = 180;
+/** How long the pour keeps flowing after the last tap before it tapers off. */
+const POUR_DECAY_MS = 450;
 
-/** Headline locked to a fixed height so the layout doesn't shift between
- *  "TAP THE BOTTLE…" (wraps to 2 lines) and "KEEP TAPPING THE BOTTLE…"
- *  (wraps to 3 lines), which would otherwise push the bottle/oil down. */
-const HEADLINE_HEIGHT = 132;
+/** Responsive sizing — everything scales with the viewport height (dvh) and
+ *  is clamped to sane bounds, so the bottle keeps the SAME proportion of the
+ *  screen on every phone instead of looking huge on small devices and tiny on
+ *  large ones. `clamp(min, preferred, max)`. */
+const BOTTLE_H = "clamp(180px, 32dvh, 320px)";
+/** Vertical position of the spout inside the tap area (scales with the screen
+ *  so the whole composition stays proportional). */
+const CAP_TOP = "clamp(96px, 18dvh, 190px)";
+/** Pour stream length: intentionally longer than any screen — the tap area
+ *  has overflow-hidden, so the stream is clipped to land exactly at the
+ *  bottom of the tap area uniformly on every device. */
+const POUR_LEN = 1600;
+/** Stream thickness, also scaled so it stays proportional to the bottle. */
+const POUR_WIDTH = "clamp(32px, 6dvh, 48px)";
+
+/** Headline height scales (and is clamped) so swapping copy never shifts the
+ *  bottle, while not eating too much of a small screen. */
+const HEADLINE_HEIGHT = "clamp(96px, 16dvh, 132px)";
 
 export default function MobilePage() {
   const { state, tap } = useLaunchSocket();
@@ -46,16 +61,12 @@ export default function MobilePage() {
    *  opened/pouring bottle and switch the headline copy. Reset on phase exit. */
   const [hasPoured, setHasPoured] = useState(false);
   const [bursts, setBursts] = useState<Burst[]>([]);
-  const [drops, setDrops] = useState<Drop[]>([]);
-  const [splash, setSplash] = useState(0);
-  /** stroking = true for ~130 ms after each tap. While true the bottle adds
-   *  POUR_STROKE_DEG of extra tilt; transitioning off returns it to POUR_BASE
-   *  (the "untilt"). Rapid taps keep restarting the timer so the bottle
-   *  oscillates around the stroke position; stopping settles it back to base. */
-  const [stroking, setStroking] = useState(false);
-  const strokeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** pouring = true while taps are recent (within POUR_DECAY_MS of the last
+   *  one). It drives both the oil stream and the bottle's deeper tilt, so the
+   *  pour flows while the guest taps and tapers off when they pause. */
+  const [pouring, setPouring] = useState(false);
+  const pourTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const burstId = useRef(0);
-  const dropId = useRef(0);
 
   const isStandby = state.phase === "idle" || state.phase === "standby";
   const isTapping = state.phase === "tapping" || state.phase === "holding";
@@ -64,14 +75,13 @@ export default function MobilePage() {
   useEffect(() => {
     if (!isTapping) {
       setHasPoured(false);
-      setDrops([]);
-      setStroking(false);
+      setPouring(false);
     }
   }, [isTapping]);
 
   useEffect(
     () => () => {
-      if (strokeTimerRef.current) clearTimeout(strokeTimerRef.current);
+      if (pourTimerRef.current) clearTimeout(pourTimerRef.current);
     },
     []
   );
@@ -89,27 +99,16 @@ export default function MobilePage() {
     setBursts((prev) => [...prev.slice(-10), { id: bId, x, y }]);
     setTimeout(() => setBursts((prev) => prev.filter((b) => b.id !== bId)), 700);
 
-    // One oil drop per tap — falls from the spout. A small horizontal jitter
-    // keeps consecutive drops from overlaying perfectly.
-    const dId = ++dropId.current;
-    const jitter = (Math.random() - 0.5) * 6;
-    setDrops((prev) => [...prev, { id: dId, jitter }]);
-    setTimeout(() => setDrops((prev) => prev.filter((d) => d.id !== dId)), 950);
-
-    // Splash ring at the spout for instant feedback on the tap
-    setSplash((s) => s + 1);
-
-    // Trigger the pour stroke: bottle tilts further for a moment then
-    // untilts back to POUR_BASE. Rapid taps keep extending the timer so
-    // the bottle stays near the stroke position; stopping settles it back.
-    setStroking(true);
-    if (strokeTimerRef.current) clearTimeout(strokeTimerRef.current);
-    strokeTimerRef.current = setTimeout(() => setStroking(false), 130);
+    // Keep the pour flowing: rapid taps keep extending the timer so the
+    // stream stays on; when tapping stops it tapers off after POUR_DECAY_MS.
+    setPouring(true);
+    if (pourTimerRef.current) clearTimeout(pourTimerRef.current);
+    pourTimerRef.current = setTimeout(() => setPouring(false), POUR_DECAY_MS);
 
     if (navigator.vibrate) navigator.vibrate(15);
   };
 
-  const tiltDeg = hasPoured ? POUR_BASE_DEG + (stroking ? POUR_STROKE_DEG : 0) : 0;
+  const tiltDeg = !hasPoured ? 0 : pouring ? POUR_DEEP_DEG : POUR_BASE_DEG;
 
   return (
     <main className="relative flex min-h-screen flex-col items-center overflow-hidden bg-black px-6 py-8">
@@ -152,7 +151,7 @@ export default function MobilePage() {
             <p className="text-sm uppercase tracking-[0.4em] text-gold-300">WSMS Launch</p>
 
             {/* Fixed-height headline container so swapping copy doesn't push
-             *  the bottle / oil drops down. */}
+             *  the bottle / oil pour down. */}
             <div
               className="flex w-full items-center justify-center"
               style={{ height: HEADLINE_HEIGHT }}
@@ -172,19 +171,22 @@ export default function MobilePage() {
               </AnimatePresence>
             </div>
 
-            <div className="relative mt-2 w-full flex-1">
+            <div className="relative mt-2 flex w-full flex-1 justify-center">
               <button
                 onPointerDown={onTap}
                 aria-label="Tap to pour"
-                className="relative mx-auto block h-full w-full max-w-sm outline-none"
+                /* No h-full: the parent is a flex container, so align-items:
+                 * stretch fills the height reliably. A percentage height here
+                 * collapses to 0 against a flex-grown parent. */
+                className="relative w-full max-w-sm outline-none"
               >
                 {/* Bottle anchor.
                  *
                  * The cap art sits at (CAP_X_PCT, CAP_Y_PCT) of the bottle PNG.
                  * We want that exact point to live at screen position
                  *   left: 50%, top: CAP_TOP
-                 * and to STAY THERE when the bottle tilts, so the oil drop
-                 * can be drawn from a fixed screen point.
+                 * and to STAY THERE when the bottle tilts, so the oil stream
+                 * pours from a fixed screen point.
                  *
                  * Transform-string order matters here. CSS evaluates the list
                  * right-to-left, AND each transform composes in matrix space,
@@ -204,50 +206,66 @@ export default function MobilePage() {
                 <div
                   className="absolute z-10"
                   style={{
-                    left: "50%",
+                    left: "35%",
                     top: CAP_TOP,
+                    height: BOTTLE_H,
                     transformOrigin: `${CAP_X_PCT}% ${CAP_Y_PCT}%`,
                     transform: `translate(-${CAP_X_PCT}%, -${CAP_Y_PCT}%) rotate(${tiltDeg}deg)`,
-                    /* Two transition speeds: long ease when first engaging the
-                     * pour (0° → base), snappy when stroking per tap. */
+                    /* Snappy once pouring (deep ↔ base as taps come and go);
+                     * a longer ease the first time it tips up from upright. */
                     transition: hasPoured
-                      ? "transform 140ms ease-out"
+                      ? "transform 220ms ease-out"
                       : "transform 400ms cubic-bezier(0.22, 1, 0.36, 1)",
                   }}
                 >
-                  <OilBottle poured={hasPoured} className="h-[240px]" />
+                  <OilBottle poured={hasPoured} className="h-full z-10" />
+
+                  {/* Continuous oil pour. It lives INSIDE the bottle's
+                   *  (rotated) frame, anchored to the spout lip (~19%, 7% of
+                   *  the bottle art), so it's always glued to the spout. It's
+                   *  then counter-rotated by -tiltDeg, cancelling the bottle's
+                   *  rotation so the stream always falls vertically (gravity)
+                   *  no matter how far the bottle is tipped. */}
+                  <div
+                    className="pointer-events-none absolute"
+                    style={{ left: "23%", top: "11%" }}
+                  >
+                    <div
+                      style={{
+                        transformOrigin: "top center",
+                        transform: `translateX(-50%) rotate(${-tiltDeg}deg)`,
+                        transition: hasPoured
+                          ? "transform 220ms ease-out"
+                          : "transform 400ms cubic-bezier(0.22, 1, 0.36, 1)",
+                      }}
+                    >
+                      <OilPour active={pouring} height={POUR_LEN} width={POUR_WIDTH} />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Oil drops — one per tap, falling from the cap point straight
-                 *  down. They share the same anchor as the cap so they emerge
-                 *  exactly from the spout. */}
-                <div
-                  className="pointer-events-none absolute z-0"
-                  style={{ left: "50%", top: CAP_TOP }}
-                >
-                  {drops.map((d) => (
-                    <span
-                      key={d.id}
-                      className="absolute block h-5 w-4 animate-oil-drop rounded-[55%] bg-gradient-to-b from-[#FFE9A8] via-[#E6841A] to-[#7A3E04] shadow-[0_0_8px_rgba(243,181,60,0.7)]"
-                      style={{ left: d.jitter, top: 0 }}
-                    />
-                  ))}
-                  {/* Splash ring — re-keyed on every tap to restart the
-                   *  animation. */}
-                  <span
-                    key={splash}
-                    className="pointer-events-none absolute block h-8 w-8 animate-oil-splash rounded-full bg-amber-300/70"
-                    style={{ left: 0, top: 0 }}
-                  />
-                </div>
+                {/* Landing glow pinned to the bottom of the tap area — gives a
+                 *  consistent "oil pooling at the bottom" effect on every
+                 *  screen, since the stream itself is clipped here. */}
+                {/*<div*/}
+                {/*  className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2"*/}
+                {/*  style={{*/}
+                {/*    width: "clamp(90px, 45dvw, 220px)",*/}
+                {/*    height: 64,*/}
+                {/*    background:*/}
+                {/*      "radial-gradient(ellipse at bottom, rgba(243,181,60,0.5), transparent 70%)",*/}
+                {/*    opacity: pouring ? 1 : 0,*/}
+                {/*    transition: "opacity 250ms ease-out",*/}
+                {/*  }}*/}
+                {/*/>*/}
 
-                {bursts.map((b) => (
-                  <span
-                    key={b.id}
-                    className="pointer-events-none absolute h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300/60 animate-burst"
-                    style={{ left: b.x, top: b.y }}
-                  />
-                ))}
+                {/*{bursts.map((b) => (*/}
+                {/*  <span*/}
+                {/*    key={b.id}*/}
+                {/*    className="pointer-events-none absolute h-12 w-12 !-z-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300/60 animate-burst"*/}
+                {/*    style={{ left: b.x, top: b.y }}*/}
+                {/*  />*/}
+                {/*))}*/}
 
                 {!hasPoured && (
                   <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1">
