@@ -43,7 +43,7 @@ const POUR_DECAY_MS = 450;
 const BOTTLE_H = "clamp(180px, 32dvh, 320px)";
 /** Vertical position of the spout inside the tap area (scales with the screen
  *  so the whole composition stays proportional). */
-const CAP_TOP = "clamp(96px, 18dvh, 190px)";
+const CAP_TOP = "clamp(50px, 8dvh, 190px)";
 /** Pour stream length: intentionally longer than any screen — the tap area
  *  has overflow-hidden, so the stream is clipped to land exactly at the
  *  bottom of the tap area uniformly on every device. */
@@ -283,7 +283,7 @@ export default function MobilePage() {
                   {state.progress.toFixed(0)}%
                 </span>
               </div>
-              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-black/70 ring-1 ring-gold-700/40 mb-20 h-sm:mb-10">
+              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-black/70 ring-1 ring-gold-700/40 mb-24 h-sm:mb-12.5">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-gold-400 via-amber-400 to-gold-200"
                   animate={{ width: `${state.progress}%` }}
