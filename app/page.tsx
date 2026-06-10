@@ -43,7 +43,7 @@ const POUR_DECAY_MS = 450;
 const BOTTLE_H = "clamp(180px, 32dvh, 320px)";
 /** Vertical position of the spout inside the tap area (scales with the screen
  *  so the whole composition stays proportional). */
-const CAP_TOP = "clamp(50px, 8dvh, 190px)";
+const CAP_TOP = "clamp(50px, 10dvh, 190px)";
 /** Pour stream length: intentionally longer than any screen — the tap area
  *  has overflow-hidden, so the stream is clipped to land exactly at the
  *  bottom of the tap area uniformly on every device. */
