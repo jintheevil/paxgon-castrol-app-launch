@@ -10,6 +10,21 @@ body {
   overscroll-behavior: none;
 }
 
+/* Kiosk-style: no long-press callouts, no text selection, no image drag/save
+   on any element. This is a tap-only activation with no text input, so it's
+   safe to disable selection globally. */
+* {
+  -webkit-touch-callout: none; /* iOS: kills the "Save Image / Copy" sheet */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+img {
+  -webkit-user-drag: none; /* Safari/Chrome: prevent drag-to-save */
+  -webkit-touch-callout: none;
+  pointer-events: none; /* long-press goes to the parent, not the image */
+}
+
 button {
   -webkit-tap-highlight-color: transparent;
 }

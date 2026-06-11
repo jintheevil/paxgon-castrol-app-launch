@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { sourceSans } from "@/lib/fonts";
+import { NoContextMenu } from "@/components/NoContextMenu";
 
 export const metadata: Metadata = {
   title: "Castrol Auto Service — WSMS Launch",
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={sourceSans.variable}>
       <body className="min-h-screen bg-black font-sans text-white antialiased no-select">
+        <NoContextMenu />
         {children}
       </body>
     </html>
