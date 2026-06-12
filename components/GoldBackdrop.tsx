@@ -4,7 +4,7 @@ export function GoldBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <Image
-        src="/assets/Standby-BG.png"
+        src="/assets/StageStandby.png"
         alt=""
         fill
         priority

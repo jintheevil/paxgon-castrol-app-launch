@@ -45,11 +45,11 @@ export default function StagePage() {
             className="absolute inset-0 z-10 grid place-items-center"
           >
             <div className="flex flex-col items-center gap-8">
-              <h1 className="text-5xl font-light tracking-[0.4em] text-gold-200">SCAN TO LAUNCH</h1>
+              <h1 className="text-6xl font-bold tracking-[0.4em]">SCAN TO LAUNCH</h1>
               <div className="rounded-3xl bg-white p-8 shadow-[0_0_120px_rgba(212,160,23,0.6)]">
                 <QRCodeSVG value={qrUrl} size={360} bgColor="#ffffff" fgColor="#0a0a0a" level="H" />
               </div>
-              <p className="mt-2 text-2xl font-light text-gold-100">
+              <p className="mt-2 text-4xl font-light">
                 Point your phone camera at the code to join
               </p>
             </div>
@@ -116,10 +116,13 @@ export default function StagePage() {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.6 }}
-                  className="text-4xl font-light uppercase tracking-[0.4em] text-white drop-shadow"
+                  className="text-6xl font-bold uppercase tracking-[0.4em] text-white drop-shadow"
                 >
                   Introducing WSMS
                 </motion.h2>
+                <p className="text-4xl font-bold text-white">
+                  (Workshop Management System)
+                </p>
                 <motion.div
                   initial={{ scale: 0.2, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -133,10 +136,7 @@ export default function StagePage() {
                   transition={{ delay: 0.9, duration: 0.6 }}
                   className="flex flex-col items-center gap-2"
                 >
-                  <p className="text-3xl font-light text-white">
-                    (Workshop Management System)
-                  </p>
-                  <p className="text-xl uppercase tracking-[0.4em] text-white">
+                  <p className="text-4xl font-bold uppercase tracking-[0.4em] text-white">
                     developed by F6
                   </p>
                 </motion.div>

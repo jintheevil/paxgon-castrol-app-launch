@@ -4,7 +4,7 @@ export function Sparkles() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <Image
-        src="/assets/Launch-BG.png"
+        src="/assets/StageReveal.png"
         alt=""
         fill
         priority

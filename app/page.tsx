@@ -111,7 +111,7 @@ export default function MobilePage() {
   const tiltDeg = !hasPoured ? 0 : pouring ? POUR_DEEP_DEG : POUR_BASE_DEG;
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center overflow-hidden bg-black px-6 py-8">
+    <main className="relative flex h-screen flex-col items-center overflow-hidden bg-black px-12 py-8">
       {isRevealed ? <Sparkles /> : <GoldBackdrop />}
 
       <header className="z-10 flex w-full flex-col items-center gap-2">
@@ -127,12 +127,12 @@ export default function MobilePage() {
             exit={{ opacity: 0 }}
             className="z-10 flex flex-1 flex-col items-center justify-center gap-12 pb-16 text-center"
           >
-            <h1 className="text-6xl font-bold tracking-[1.5rem] indent-[1.5rem] text-white text-center">
+            <h1 className="text-6xl font-bold indent-[1.5rem] text-white text-center">
               WSMS
-              <span className="mt-6 block text-3xl font-bold text-gold-200">Launch</span>
+              <span className="mt-6 block text-6xl font-bold">Launch</span>
             </h1>
             <LoadingSpinner className="h-20 w-20" />
-            <p className="max-w-xs text-4xl font-semibold leading-relaxed text-gold-100/80">
+            <p className="max-w-xs text-4xl font-semibold">
               The launch will begin shortly.
               <br />
               Please standby…
@@ -148,7 +148,7 @@ export default function MobilePage() {
             exit={{ opacity: 0 }}
             className="z-10 mt-6 flex flex-1 flex-col items-center gap-4 text-center"
           >
-            <p className="mt-2 mb-4 text-xl uppercase tracking-[0.4em] text-gold-300">WSMS Launch</p>
+            <p className="mt-2 mb-4 text-xl uppercase tracking-[0.4em]">WSMS Launch</p>
 
             {/* Fixed-height headline container so swapping copy doesn't push
              *  the bottle / oil pour down. */}
@@ -276,21 +276,21 @@ export default function MobilePage() {
               </button>
             </div>
 
-            <div className="z-10 w-full max-w-sm">
-              <div className="flex items-baseline justify-between text-gold-100">
-                <span className="text-xs uppercase tracking-[0.3em]">Collective</span>
-                <span className="font-mono text-2xl font-bold">
-                  {state.progress.toFixed(0)}%
-                </span>
-              </div>
-              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-black/70 ring-1 ring-gold-700/40 mb-24 h-sm:mb-12.5">
-                <motion.div
-                  className="h-full rounded-full bg-gradient-to-r from-gold-400 via-amber-400 to-gold-200"
-                  animate={{ width: `${state.progress}%` }}
-                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                />
-              </div>
-            </div>
+            {/*<div className="z-10 w-full max-w-sm">*/}
+            {/*  /!*<div className="flex items-baseline justify-between text-gold-100">*!/*/}
+            {/*  /!*  <span className="text-xs uppercase tracking-[0.3em]">Collective</span>*!/*/}
+            {/*  /!*  <span className="font-mono text-2xl font-bold">*!/*/}
+            {/*  /!*    {state.progress.toFixed(0)}%*!/*/}
+            {/*  /!*  </span>*!/*/}
+            {/*  /!*</div>*!/*/}
+            {/*  /!*<div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-black/70 ring-1 ring-gold-700/40 mb-24 h-sm:mb-12.5">*!/*/}
+            {/*  /!*  <motion.div*!/*/}
+            {/*  /!*    className="h-full rounded-full bg-gradient-to-r from-gold-400 via-amber-400 to-gold-200"*!/*/}
+            {/*  /!*    animate={{ width: `${state.progress}%` }}*!/*/}
+            {/*  /!*    transition={{ type: "spring", damping: 25, stiffness: 200 }}*!/*/}
+            {/*  /!*  />*!/*/}
+            {/*  /!*</div>*!/*/}
+            {/*</div>*/}
           </motion.section>
         )}
 
@@ -300,7 +300,7 @@ export default function MobilePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="z-10 flex flex-1 flex-col items-center justify-center gap-8 h-sm:gap-4 text-center"
+            className="z-10 flex flex-1 flex-col items-center justify-center h-sm:gap-4 text-center"
           >
             <motion.div
               initial={{ scale: 0.2, opacity: 0 }}
@@ -308,23 +308,23 @@ export default function MobilePage() {
               transition={{ type: "spring", damping: 12, stiffness: 100 }}
               className="relative z-10"
             >
-              <F6Logo className="h-56 w-56 h-sm:h-40 h-sm:w-40" />
+              <F6Logo className="mt-20 h-auto w-full" />
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="z-10 flex flex-col gap-2"
+              className="z-10 flex flex-col"
             >
-              <p className="text-4xl h-sm:text-2xl font-semibold text-white drop-shadow">Introducing WSMS</p>
-              <p className="text-2xl h-sm:text-xl text-white/90">(Workshop Management System)</p>
-              <p className="text-2xl h-sm:text-xl text-white/90">developed by F6</p>
+              <p className="text-2xl h-sm:text-lg font-semibold text-white drop-shadow">Introducing WSMS</p>
+              <p className="text-xl h-sm:text-md text-white/90">(Workshop Management System)</p>
+              <p className="text-xl h-sm:text-md text-white/90">developed by F6</p>
             </motion.div>
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2, duration: 0.6 }}
-              className="z-10 mt-6 h-sm:mt-2 max-w-xs text-4xl h-sm:text-2xl font-semibold text-white drop-shadow"
+              className="z-10 h-sm:mt-2 max-w-xs text-2xl h-sm:text-xl font-semibold text-white drop-shadow"
             >
               Thank You For Your Participation
             </motion.p>
