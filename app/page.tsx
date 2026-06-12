@@ -111,7 +111,7 @@ export default function MobilePage() {
   const tiltDeg = !hasPoured ? 0 : pouring ? POUR_DEEP_DEG : POUR_BASE_DEG;
 
   return (
-    <main className="relative flex h-screen flex-col items-center overflow-hidden bg-black px-12 py-8">
+    <main className="relative flex h-[100dvh] flex-col items-center overflow-clip bg-black px-12 py-8">
       {isRevealed ? <Sparkles /> : <GoldBackdrop />}
 
       <header className="z-10 flex w-full flex-col items-center gap-2">
@@ -316,15 +316,15 @@ export default function MobilePage() {
               transition={{ delay: 0.6, duration: 0.6 }}
               className="z-10 flex flex-col"
             >
-              <p className="text-2xl h-sm:text-lg font-semibold text-white drop-shadow">Introducing WSMS</p>
-              <p className="text-xl h-sm:text-md text-white/90">(Workshop Management System)</p>
-              <p className="text-xl h-sm:text-md text-white/90">developed by F6</p>
+              <p className="text-2xl h-sm:text-lg font-bold text-white">Introducing WSMS</p>
+              <p className="text-xl font-bold h-sm:text-md text-white">(Workshop Management System)</p>
+              <p className="text-xl font-bold h-sm:text-md text-white">developed by F6</p>
             </motion.div>
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2, duration: 0.6 }}
-              className="z-10 h-sm:mt-2 max-w-xs text-2xl h-sm:text-xl font-semibold text-white drop-shadow"
+              className="z-10 h-sm:mt-2 max-w-xs text-2xl h-sm:text-xl font-bold text-white"
             >
               Thank You For Your Participation
             </motion.p>

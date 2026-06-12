@@ -23,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={sourceSans.variable}>
-      <body className="min-h-screen bg-black font-sans text-white antialiased no-select">
+      <body className="h-[100dvh] bg-black font-sans text-white antialiased no-select">
         <NoContextMenu />
         {children}
       </body>
